@@ -1,15 +1,19 @@
 package breui.viewmodel
 
-import breui.model.*
+import breui.model.AppState
+import breui.model.DetailTab
+import breui.model.Mode
+import breui.model.Overlay
+import breui.model.Package
 import breui.service.BrewService
 import breui.service.TldrService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class AppViewModel(
@@ -151,9 +155,7 @@ class AppViewModel(
             scope.launch {
                 closeOverlay()
                 setStatusMessage("Uninstalling ${pkg.name}...")
-                brewService.uninstall(pkg.name, pkg.type).collect { line ->
-                    // Progress overlay wired in Task 9; for now just collect silently
-                }
+                brewService.uninstall(pkg.name, pkg.type).collect {}
                 loadInstalled()
                 setStatusMessage("Uninstalled ${pkg.name}")
             }
