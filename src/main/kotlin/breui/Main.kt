@@ -1,7 +1,7 @@
 package breui
 
+import breui.service.BrewServiceImpl
 import breui.service.NoOpTldrService
-import breui.service.StubBrewService
 import breui.ui.App
 import breui.viewmodel.AppViewModel
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
@@ -19,7 +19,7 @@ fun main() = runBlocking {
     val gui = MultiWindowTextGUI(screen)
 
     val scope = CoroutineScope(Dispatchers.Default)
-    val viewModel = AppViewModel(StubBrewService(), NoOpTldrService(), scope)
+    val viewModel = AppViewModel(BrewServiceImpl(), NoOpTldrService(), scope)
 
     viewModel.loadInstalled()
 
