@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
@@ -56,8 +57,13 @@ class BrewServiceImpl : BrewService {
 
     override fun upgradeAll(): Flow<String> = flow { emit("Not yet implemented") }
 
-    override fun uninstall(name: String, type: PackageType): Flow<String> = flow {
-        emit("Not yet implemented")
+    override fun uninstall(name: String, type: PackageType): Flow<String> {
+        val args = if (type == PackageType.CASK) {
+            listOf("brew", "uninstall", "--cask", name)
+        } else {
+            listOf("brew", "uninstall", name)
+        }
+        return streamCommand(args)
     }
 
     override suspend fun pin(name: String): Result<Unit> =
@@ -73,6 +79,16 @@ class BrewServiceImpl : BrewService {
 
     override suspend fun removeTap(tap: String): Result<Unit> =
         Result.failure(UnsupportedOperationException("Implemented in Task 13"))
+
+    private fun streamCommand(args: List<String>): Flow<String> = flow {
+        val process = ProcessBuilder(args)
+            .redirectErrorStream(true)
+            .start()
+        process.inputStream.bufferedReader().use { reader ->
+            reader.lineSequence().forEach { line -> emit(line) }
+        }
+        process.waitFor()
+    }.flowOn(Dispatchers.IO)
 
     private suspend fun runCommand(args: List<String>): String = withContext(Dispatchers.IO) {
         val process = ProcessBuilder(args)

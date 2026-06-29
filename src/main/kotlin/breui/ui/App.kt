@@ -3,6 +3,8 @@ package breui.ui
 import breui.model.AppState
 import breui.model.DetailTab
 import breui.model.Mode
+import breui.model.Overlay
+import breui.ui.overlays.ConfirmOverlay
 import breui.viewmodel.AppViewModel
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.BorderLayout
@@ -62,10 +64,33 @@ class App(
         gui.addWindowAndWait(window)
     }
 
+    private var currentOverlayWindow: BasicWindow? = null
+
     private fun applyState(state: AppState) {
         listPanel.applyState(state) { index -> viewModel.selectPackage(index) }
         detailPanel.applyState(state)
         statusBar.setText(state.statusMessage)
+        renderOverlay(state)
+    }
+
+    private fun renderOverlay(state: AppState) {
+        if (state.overlay == null) {
+            currentOverlayWindow?.close()
+            currentOverlayWindow = null
+            return
+        }
+        if (currentOverlayWindow != null) return // already showing
+
+        val overlayWindow = when (val overlay = state.overlay) {
+            is Overlay.Confirm -> ConfirmOverlay(
+                message = overlay.message,
+                onConfirm = { overlay.onConfirm(); viewModel.closeOverlay() },
+                onDismiss = { viewModel.closeOverlay() }
+            )
+            else -> return // other overlays in later tasks
+        }
+        currentOverlayWindow = overlayWindow
+        gui.addWindow(overlayWindow)
     }
 
     private fun handleKey(key: KeyStroke) {
@@ -88,6 +113,12 @@ class App(
             listPanel.searchFocused && key.keyType == KeyType.Escape -> {
                 listPanel.searchFocused = false
                 listPanel.searchBuffer = ""
+            }
+            key.keyType == KeyType.Escape && !listPanel.searchFocused -> {
+                viewModel.closeOverlay()
+            }
+            key.keyType == KeyType.Character && key.character == 'x' && !listPanel.searchFocused -> {
+                viewModel.uninstallPackage(viewModel.state.value.selected)
             }
             listPanel.searchFocused && key.keyType == KeyType.Backspace -> {
                 if (listPanel.searchBuffer.isNotEmpty()) {

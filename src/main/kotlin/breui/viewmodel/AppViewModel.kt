@@ -86,4 +86,27 @@ class AppViewModel(
     fun setDetailTab(tab: DetailTab) {
         update { copy(detailTab = tab) }
     }
+
+    fun showConfirm(message: String, onConfirm: () -> Unit) {
+        update { copy(overlay = Overlay.Confirm(message, onConfirm)) }
+    }
+
+    fun closeOverlay() {
+        update { copy(overlay = null) }
+    }
+
+    fun uninstallPackage(index: Int) {
+        val pkg = _state.value.packages.getOrNull(index) ?: return
+        showConfirm("Uninstall ${pkg.name}?") {
+            scope.launch {
+                closeOverlay()
+                setStatusMessage("Uninstalling ${pkg.name}...")
+                brewService.uninstall(pkg.name, pkg.type).collect { line ->
+                    // Progress overlay wired in Task 9; for now just collect silently
+                }
+                loadInstalled()
+                setStatusMessage("Uninstalled ${pkg.name}")
+            }
+        }
+    }
 }

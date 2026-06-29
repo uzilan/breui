@@ -2,6 +2,7 @@ package breui.viewmodel
 
 import breui.model.DetailTab
 import breui.model.Mode
+import breui.model.Overlay
 import breui.service.FakeBrewService
 import breui.service.NoOpTldrService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -99,5 +100,24 @@ class AppViewModelTest {
         vm.search("git")
         runCurrent()
         assertTrue(vm.state.value.statusMessage.contains("network error"))
+    }
+
+    @Test
+    fun `uninstallPackage shows confirm overlay`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.loadInstalled()
+        advanceUntilIdle()
+        vm.uninstallPackage(0)
+        val overlay = vm.state.value.overlay
+        assertTrue(overlay is Overlay.Confirm)
+        assertTrue((overlay as Overlay.Confirm).message.contains("curl"))
+    }
+
+    @Test
+    fun `closeOverlay clears overlay`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.showConfirm("test") {}
+        vm.closeOverlay()
+        assertEquals(null, vm.state.value.overlay)
     }
 }
