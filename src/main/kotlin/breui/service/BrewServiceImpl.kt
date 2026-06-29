@@ -82,13 +82,17 @@ class BrewServiceImpl : BrewService {
     override suspend fun unpin(name: String): Result<Unit> =
         runCatching { runCommand(listOf("brew", "unpin", name)) }.map { }
 
-    override suspend fun listTaps(): Result<List<String>> =
-        Result.failure(UnsupportedOperationException("Implemented in Task 13"))
+    override suspend fun listTaps(): Result<List<String>> = runCatching {
+        val output = runCommand(listOf("brew", "tap"))
+        output.lines().filter { it.isNotBlank() }
+    }
 
-    override fun addTap(tap: String): Flow<String> = flow { emit("Not yet implemented") }
+    override fun addTap(tap: String): Flow<String> = streamCommand(listOf("brew", "tap", tap))
 
-    override suspend fun removeTap(tap: String): Result<Unit> =
-        Result.failure(UnsupportedOperationException("Implemented in Task 13"))
+    override suspend fun removeTap(tap: String): Result<Unit> = runCatching {
+        runCommand(listOf("brew", "untap", tap))
+        Unit
+    }
 
     private fun streamCommand(args: List<String>): Flow<String> = flow {
         val process = ProcessBuilder(args)

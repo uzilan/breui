@@ -6,6 +6,7 @@ import breui.model.Mode
 import breui.model.Overlay
 import breui.ui.overlays.ConfirmOverlay
 import breui.ui.overlays.ProgressOverlay
+import breui.ui.overlays.TapManagerOverlay
 import breui.viewmodel.AppViewModel
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.BorderLayout
@@ -106,7 +107,17 @@ class App(
                     win.appendLine(lastLine)
                 }
             }
-            is Overlay.TapManager -> {} // Task 13
+            is Overlay.TapManager -> {
+                if (currentOverlayWindow != null) return
+                val win = TapManagerOverlay(
+                    taps = state.taps,
+                    onAdd = { tap -> viewModel.addTap(tap) },
+                    onRemove = { tap -> viewModel.removeTap(tap) },
+                    onDismiss = { viewModel.closeOverlay() }
+                )
+                currentOverlayWindow = win
+                gui.addWindow(win)
+            }
         }
     }
 
@@ -145,6 +156,8 @@ class App(
                 viewModel.upgradeAll()
             key.keyType == KeyType.Character && key.character == 'p' && !listPanel.searchFocused ->
                 viewModel.togglePin(viewModel.state.value.selected)
+            key.keyType == KeyType.Character && key.character == 't' && !listPanel.searchFocused ->
+                viewModel.openTapManager()
             listPanel.searchFocused && key.keyType == KeyType.Backspace -> {
                 if (listPanel.searchBuffer.isNotEmpty()) {
                     listPanel.searchBuffer = listPanel.searchBuffer.dropLast(1)

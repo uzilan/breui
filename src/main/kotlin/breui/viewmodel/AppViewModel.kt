@@ -184,6 +184,36 @@ class AppViewModel(
         }
     }
 
+    fun openTapManager() {
+        scope.launch {
+            brewService.listTaps()
+                .onSuccess { taps ->
+                    update { copy(overlay = Overlay.TapManager, taps = taps, statusMessage = "") }
+                }
+                .onFailure { e -> setStatusMessage("Error listing taps: ${e.message}") }
+        }
+    }
+
+    fun addTap(tap: String) {
+        scope.launch {
+            closeOverlay()
+            runWithProgress("Adding tap $tap", brewService.addTap(tap)) {
+                setStatusMessage("Added tap $tap")
+            }
+        }
+    }
+
+    fun removeTap(tap: String) {
+        showConfirm("Remove tap $tap?") {
+            scope.launch {
+                closeOverlay()
+                brewService.removeTap(tap)
+                    .onSuccess { setStatusMessage("Removed tap $tap") }
+                    .onFailure { e -> setStatusMessage("Error: ${e.message}") }
+            }
+        }
+    }
+
     fun uninstallPackage(index: Int) {
         val pkg = _state.value.packages.getOrNull(index) ?: return
         showConfirm("Uninstall ${pkg.name}?") {

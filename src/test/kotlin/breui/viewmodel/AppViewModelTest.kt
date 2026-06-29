@@ -162,6 +162,14 @@ class AppViewModelTest {
     }
 
     @Test
+    fun `openTapManager sets TapManager overlay`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.openTapManager()
+        advanceUntilIdle()
+        assertTrue(vm.state.value.overlay is Overlay.TapManager)
+    }
+
+    @Test
     fun `setDetailTab TLDR triggers loadTldr`() = runTest {
         val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
         vm.loadInstalled()

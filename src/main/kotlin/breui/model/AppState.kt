@@ -11,5 +11,6 @@ data class AppState(
     val detailTab: DetailTab = DetailTab.INFO,
     val loading: Boolean = false,
     val statusMessage: String = "",
-    val overlay: Overlay? = null
+    val overlay: Overlay? = null,
+    val taps: List<String> = emptyList()
 )
