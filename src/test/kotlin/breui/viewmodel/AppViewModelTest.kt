@@ -1,0 +1,79 @@
+package breui.viewmodel
+
+import breui.model.DetailTab
+import breui.model.Mode
+import breui.service.FakeBrewService
+import breui.service.NoOpTldrService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class AppViewModelTest {
+
+    @Test
+    fun `loadInstalled sets packages and clears loading`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.loadInstalled()
+        advanceUntilIdle()
+        assertEquals(FakeBrewService.FIXTURE_PACKAGES, vm.state.value.packages)
+        assertFalse(vm.state.value.loading)
+    }
+
+    @Test
+    fun `loadInstalled on failure sets status message`() = runTest {
+        val fake = FakeBrewService().apply {
+            installedResult = Result.failure(RuntimeException("brew not found"))
+        }
+        val vm = AppViewModel(fake, NoOpTldrService(), this)
+        vm.loadInstalled()
+        runCurrent()
+        assert(vm.state.value.statusMessage.contains("brew not found"))
+    }
+
+    @Test
+    fun `selectPackage updates selected index`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.selectPackage(2)
+        assertEquals(2, vm.state.value.selected)
+    }
+
+    @Test
+    fun `setStatusMessage clears after 3 seconds`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.setStatusMessage("hello")
+        assertEquals("hello", vm.state.value.statusMessage)
+        advanceTimeBy(3_001)
+        assertEquals("", vm.state.value.statusMessage)
+    }
+
+    @Test
+    fun `toggleMode switches from INSTALLED to SEARCH`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        assertEquals(Mode.INSTALLED, vm.state.value.mode)
+        vm.toggleMode()
+        assertEquals(Mode.SEARCH, vm.state.value.mode)
+    }
+
+    @Test
+    fun `toggleMode from SEARCH reloads installed packages`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.toggleMode() // → SEARCH
+        vm.toggleMode() // → INSTALLED, triggers loadInstalled
+        advanceUntilIdle()
+        assertEquals(Mode.INSTALLED, vm.state.value.mode)
+        assertEquals(FakeBrewService.FIXTURE_PACKAGES, vm.state.value.packages)
+    }
+
+    @Test
+    fun `setDetailTab updates detailTab`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.setDetailTab(DetailTab.DEPS)
+        assertEquals(DetailTab.DEPS, vm.state.value.detailTab)
+    }
+}
