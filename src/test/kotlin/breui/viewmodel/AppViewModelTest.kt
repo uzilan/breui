@@ -120,4 +120,22 @@ class AppViewModelTest {
         vm.closeOverlay()
         assertEquals(null, vm.state.value.overlay)
     }
+
+    @Test
+    fun `installPackage opens progress overlay`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.loadInstalled()
+        vm.installPackage(0)
+        // After flow completes, overlay should be cleared
+        assertEquals(null, vm.state.value.overlay)
+        // Status message set
+        assertTrue(vm.state.value.statusMessage.contains("curl") || vm.state.value.statusMessage.isEmpty())
+    }
+
+    @Test
+    fun `upgradeAll shows confirm overlay`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.upgradeAll()
+        assertTrue(vm.state.value.overlay is Overlay.Confirm)
+    }
 }

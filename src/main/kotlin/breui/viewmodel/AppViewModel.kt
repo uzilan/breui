@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class AppViewModel(
@@ -93,6 +94,55 @@ class AppViewModel(
 
     fun closeOverlay() {
         update { copy(overlay = null) }
+    }
+
+    fun openProgress(title: String) {
+        update { copy(overlay = Overlay.Progress(title, emptyList())) }
+    }
+
+    fun appendProgressLine(line: String) {
+        val current = _state.value.overlay as? Overlay.Progress ?: return
+        update { copy(overlay = current.copy(lines = current.lines + line)) }
+    }
+
+    private suspend fun runWithProgress(title: String, flow: Flow<String>, onDone: suspend () -> Unit = {}) {
+        openProgress(title)
+        flow.collect { line -> appendProgressLine(line) }
+        onDone()
+        delay(500)
+        closeOverlay()
+    }
+
+    fun installPackage(index: Int) {
+        val pkg = _state.value.packages.getOrNull(index) ?: return
+        scope.launch {
+            runWithProgress("Installing ${pkg.name}", brewService.install(pkg.name, pkg.type)) {
+                loadInstalled()
+                setStatusMessage("Installed ${pkg.name}")
+            }
+        }
+    }
+
+    fun upgradePackage(index: Int) {
+        val pkg = _state.value.packages.getOrNull(index) ?: return
+        scope.launch {
+            runWithProgress("Upgrading ${pkg.name}", brewService.upgrade(pkg.name, pkg.type)) {
+                loadInstalled()
+                setStatusMessage("Upgraded ${pkg.name}")
+            }
+        }
+    }
+
+    fun upgradeAll() {
+        showConfirm("Upgrade all outdated packages?") {
+            scope.launch {
+                closeOverlay()
+                runWithProgress("Upgrading all", brewService.upgradeAll()) {
+                    loadInstalled()
+                    setStatusMessage("Upgrade complete")
+                }
+            }
+        }
     }
 
     fun uninstallPackage(index: Int) {

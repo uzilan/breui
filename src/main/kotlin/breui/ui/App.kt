@@ -5,6 +5,7 @@ import breui.model.DetailTab
 import breui.model.Mode
 import breui.model.Overlay
 import breui.ui.overlays.ConfirmOverlay
+import breui.ui.overlays.ProgressOverlay
 import breui.viewmodel.AppViewModel
 import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.BorderLayout
@@ -79,23 +80,34 @@ class App(
     }
 
     private fun renderOverlay(state: AppState) {
-        if (state.overlay == null) {
-            currentOverlayWindow?.close()
-            currentOverlayWindow = null
-            return
+        when (val overlay = state.overlay) {
+            null -> {
+                currentOverlayWindow?.close()
+                currentOverlayWindow = null
+            }
+            is Overlay.Confirm -> {
+                if (currentOverlayWindow != null) return
+                val win = ConfirmOverlay(
+                    message = overlay.message,
+                    onConfirm = { overlay.onConfirm(); viewModel.closeOverlay() },
+                    onDismiss = { viewModel.closeOverlay() }
+                )
+                currentOverlayWindow = win
+                gui.addWindow(win)
+            }
+            is Overlay.Progress -> {
+                val win = currentOverlayWindow as? ProgressOverlay
+                    ?: ProgressOverlay(overlay.title).also {
+                        currentOverlayWindow = it
+                        gui.addWindow(it)
+                    }
+                val lastLine = overlay.lines.lastOrNull()
+                if (lastLine != null && win.lineCount < overlay.lines.size) {
+                    win.appendLine(lastLine)
+                }
+            }
+            is Overlay.TapManager -> {} // Task 13
         }
-        if (currentOverlayWindow != null) return // already showing
-
-        val overlayWindow = when (val overlay = state.overlay) {
-            is Overlay.Confirm -> ConfirmOverlay(
-                message = overlay.message,
-                onConfirm = { overlay.onConfirm(); viewModel.closeOverlay() },
-                onDismiss = { viewModel.closeOverlay() }
-            )
-            else -> return // other overlays in later tasks
-        }
-        currentOverlayWindow = overlayWindow
-        gui.addWindow(overlayWindow)
     }
 
     private fun handleKey(key: KeyStroke) {
@@ -125,6 +137,12 @@ class App(
             key.keyType == KeyType.Character && key.character == 'x' && !listPanel.searchFocused -> {
                 viewModel.uninstallPackage(viewModel.state.value.selected)
             }
+            key.keyType == KeyType.Character && key.character == 'i' && !listPanel.searchFocused ->
+                viewModel.installPackage(viewModel.state.value.selected)
+            key.keyType == KeyType.Character && key.character == 'u' && !listPanel.searchFocused ->
+                viewModel.upgradePackage(viewModel.state.value.selected)
+            key.keyType == KeyType.Character && key.character == 'U' && !listPanel.searchFocused ->
+                viewModel.upgradeAll()
             listPanel.searchFocused && key.keyType == KeyType.Backspace -> {
                 if (listPanel.searchBuffer.isNotEmpty()) {
                     listPanel.searchBuffer = listPanel.searchBuffer.dropLast(1)

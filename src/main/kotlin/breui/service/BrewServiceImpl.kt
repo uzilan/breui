@@ -47,15 +47,25 @@ class BrewServiceImpl : BrewService {
             ?: error("No info found for $name")
     }
 
-    override fun install(name: String, type: PackageType): Flow<String> = flow {
-        emit("Not yet implemented")
+    override fun install(name: String, type: PackageType): Flow<String> {
+        val args = if (type == PackageType.CASK) {
+            listOf("brew", "install", "--cask", name)
+        } else {
+            listOf("brew", "install", name)
+        }
+        return streamCommand(args)
     }
 
-    override fun upgrade(name: String, type: PackageType): Flow<String> = flow {
-        emit("Not yet implemented")
+    override fun upgrade(name: String, type: PackageType): Flow<String> {
+        val args = if (type == PackageType.CASK) {
+            listOf("brew", "upgrade", "--cask", name)
+        } else {
+            listOf("brew", "upgrade", name)
+        }
+        return streamCommand(args)
     }
 
-    override fun upgradeAll(): Flow<String> = flow { emit("Not yet implemented") }
+    override fun upgradeAll(): Flow<String> = streamCommand(listOf("brew", "upgrade"))
 
     override fun uninstall(name: String, type: PackageType): Flow<String> {
         val args = if (type == PackageType.CASK) {
