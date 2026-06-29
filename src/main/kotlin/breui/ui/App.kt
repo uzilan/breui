@@ -143,6 +143,8 @@ class App(
                 viewModel.upgradePackage(viewModel.state.value.selected)
             key.keyType == KeyType.Character && key.character == 'U' && !listPanel.searchFocused ->
                 viewModel.upgradeAll()
+            key.keyType == KeyType.Character && key.character == 'p' && !listPanel.searchFocused ->
+                viewModel.togglePin(viewModel.state.value.selected)
             listPanel.searchFocused && key.keyType == KeyType.Backspace -> {
                 if (listPanel.searchBuffer.isNotEmpty()) {
                     listPanel.searchBuffer = listPanel.searchBuffer.dropLast(1)

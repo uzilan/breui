@@ -5,6 +5,7 @@ import breui.model.DetailTab
 import breui.model.Mode
 import breui.model.Overlay
 import breui.model.Package
+import breui.model.PackageType
 import breui.service.BrewService
 import breui.service.TldrService
 import kotlinx.coroutines.CoroutineScope
@@ -160,6 +161,25 @@ class AppViewModel(
                     loadInstalled()
                     setStatusMessage("Upgrade complete")
                 }
+            }
+        }
+    }
+
+    fun togglePin(index: Int) {
+        val pkg = _state.value.packages.getOrNull(index) ?: return
+        if (pkg.type == PackageType.CASK) {
+            setStatusMessage("Casks cannot be pinned")
+            return
+        }
+        scope.launch {
+            if (pkg.pinned) {
+                brewService.unpin(pkg.name)
+                    .onSuccess { loadInstalled(); setStatusMessage("Unpinned ${pkg.name}") }
+                    .onFailure { e -> setStatusMessage("Error: ${e.message}") }
+            } else {
+                brewService.pin(pkg.name)
+                    .onSuccess { loadInstalled(); setStatusMessage("Pinned ${pkg.name}") }
+                    .onFailure { e -> setStatusMessage("Error: ${e.message}") }
             }
         }
     }

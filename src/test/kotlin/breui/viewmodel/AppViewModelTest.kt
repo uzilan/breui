@@ -140,6 +140,28 @@ class AppViewModelTest {
     }
 
     @Test
+    fun `togglePin calls pin when package not pinned`() = runTest {
+        val fake = FakeBrewService()
+        val vm = AppViewModel(fake, NoOpTldrService(), this)
+        vm.loadInstalled()
+        advanceUntilIdle()
+        // curl (index 0) has pinned=false
+        vm.togglePin(0)
+        advanceUntilIdle()
+        assertTrue(fake.pinCalled)
+    }
+
+    @Test
+    fun `togglePin on cask sets error status`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.loadInstalled()
+        advanceUntilIdle()
+        // iterm2 (index 2) is a cask
+        vm.togglePin(2)
+        assertTrue(vm.state.value.statusMessage.contains("cannot be pinned"))
+    }
+
+    @Test
     fun `setDetailTab TLDR triggers loadTldr`() = runTest {
         val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
         vm.loadInstalled()

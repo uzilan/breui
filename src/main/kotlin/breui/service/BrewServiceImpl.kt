@@ -77,10 +77,10 @@ class BrewServiceImpl : BrewService {
     }
 
     override suspend fun pin(name: String): Result<Unit> =
-        Result.failure(UnsupportedOperationException("Implemented in Task 12"))
+        runCatching { runCommand(listOf("brew", "pin", name)) }.map { }
 
     override suspend fun unpin(name: String): Result<Unit> =
-        Result.failure(UnsupportedOperationException("Implemented in Task 12"))
+        runCatching { runCommand(listOf("brew", "unpin", name)) }.map { }
 
     override suspend fun listTaps(): Result<List<String>> =
         Result.failure(UnsupportedOperationException("Implemented in Task 13"))
