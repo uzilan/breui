@@ -1,39 +1,30 @@
 package breui
 
-import com.googlecode.lanterna.gui2.*
-import com.googlecode.lanterna.input.KeyStroke
-import com.googlecode.lanterna.input.KeyType
+import breui.service.NoOpTldrService
+import breui.service.StubBrewService
+import breui.ui.App
+import breui.viewmodel.AppViewModel
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 
-fun main() {
+fun main() = runBlocking {
     val terminal = DefaultTerminalFactory().createTerminal()
     val screen = TerminalScreen(terminal)
     screen.startScreen()
-
     val gui = MultiWindowTextGUI(screen)
-    val window = BasicWindow("breui")
-    window.setHints(setOf(Window.Hint.FULL_SCREEN, Window.Hint.NO_DECORATIONS))
 
-    val panel = Panel()
-    panel.addComponent(Label("breui — Homebrew UI"))
-    panel.addComponent(Label("Press q to quit"))
-    window.component = panel
+    val scope = CoroutineScope(Dispatchers.Default)
+    val viewModel = AppViewModel(StubBrewService(), NoOpTldrService(), scope)
 
-    window.addWindowListener(object : WindowListenerAdapter() {
-        override fun onUnhandledInput(
-            basePane: Window,
-            keyStroke: KeyStroke,
-            hasBeenHandled: AtomicBoolean
-        ) {
-            if (keyStroke.keyType == KeyType.Character && keyStroke.character == 'q') {
-                window.close()
-                hasBeenHandled.set(true)
-            }
-        }
-    })
+    viewModel.loadInstalled()
 
-    gui.addWindowAndWait(window)
+    App(gui, screen, viewModel, scope).run()
+
+    scope.cancel()
     screen.stopScreen()
 }
