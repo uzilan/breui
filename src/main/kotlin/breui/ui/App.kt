@@ -97,11 +97,11 @@ class App(
             listPanel.searchFocused && key.keyType == KeyType.Character -> {
                 listPanel.searchBuffer += key.character
             }
-            key.keyType == KeyType.ArrowLeft && !listPanel.searchFocused -> {
+            key.keyType == KeyType.ArrowLeft || (key.keyType == KeyType.Character && key.character == '[') && !listPanel.searchFocused -> {
                 val prev = DetailTab.values()[(state.detailTab.ordinal - 1 + 3) % 3]
                 viewModel.setDetailTab(prev)
             }
-            key.keyType == KeyType.ArrowRight && !listPanel.searchFocused -> {
+            key.keyType == KeyType.ArrowRight || (key.keyType == KeyType.Character && key.character == ']') && !listPanel.searchFocused -> {
                 val next = DetailTab.values()[(state.detailTab.ordinal + 1) % 3]
                 viewModel.setDetailTab(next)
             }
