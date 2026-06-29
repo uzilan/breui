@@ -3,6 +3,7 @@ package breui.ui
 import breui.model.AppState
 import breui.model.DetailTab
 import breui.model.Package
+import breui.model.PackageType
 import com.googlecode.lanterna.gui2.*
 
 class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
@@ -40,7 +41,11 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
             appendLine("Homepage: ${pkg.homepage}")
             if (pkg.license != null) appendLine("License:  ${pkg.license}")
         }
-        DetailTab.DEPS -> "Loading..."  // Task 10
+        DetailTab.DEPS -> if (pkg.dependencies.isEmpty()) {
+            if (pkg.type == PackageType.CASK) "No dependencies (cask)" else "No dependencies"
+        } else {
+            pkg.dependencies.joinToString("\n") { "  • $it" }
+        }
         DetailTab.TLDR -> "Loading..."  // Task 11
     }
 }
