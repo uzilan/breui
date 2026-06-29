@@ -64,17 +64,6 @@ class BrewServiceImpl : BrewService {
         if (exitCode != 0) throw IOException("Command failed (exit $exitCode): ${args.joinToString(" ")}\n$output")
         output
     }
-
-    @Suppress("unused")
-    private fun streamCommand(args: List<String>): Flow<String> = flow {
-        val process = ProcessBuilder(args)
-            .redirectErrorStream(true)
-            .start()
-        process.inputStream.bufferedReader().useLines { lines ->
-            lines.forEach { emit(it) }
-        }
-        process.waitFor()
-    }
 }
 
 private fun FormulaDto.toPackage() = Package(

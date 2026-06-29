@@ -17,6 +17,7 @@ class BrewServiceImplTest {
         assertTrue(packages.isNotEmpty(), "Expected at least one installed package")
         assertTrue(packages.all { it.name.isNotBlank() }, "All packages should have a name")
         assertTrue(packages.all { it.version.isNotBlank() }, "All packages should have a version")
+        assertTrue(packages.any { it.name == "git" }, "Expected git to be installed")
         assertTrue(packages == packages.sortedBy { it.name }, "Packages should be sorted by name")
     }
 }
