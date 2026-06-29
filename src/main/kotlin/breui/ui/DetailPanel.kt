@@ -46,6 +46,6 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
         } else {
             pkg.dependencies.joinToString("\n") { "  • $it" }
         }
-        DetailTab.TLDR -> "Loading..."  // Task 11
+        DetailTab.TLDR -> pkg.tldr ?: "Loading..."
     }
 }

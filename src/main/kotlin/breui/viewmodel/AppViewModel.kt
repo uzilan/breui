@@ -90,6 +90,21 @@ class AppViewModel(
 
     fun setDetailTab(tab: DetailTab) {
         update { copy(detailTab = tab) }
+        if (tab == DetailTab.TLDR) loadTldr(_state.value.selected)
+    }
+
+    fun loadTldr(index: Int) {
+        val pkg = _state.value.packages.getOrNull(index) ?: return
+        if (pkg.tldr != null) return
+        scope.launch {
+            val result = tldrService.get(pkg.name)
+            val tldrText = result ?: pkg.desc.ifBlank { "No description available" }
+            update {
+                val updated = packages.toMutableList()
+                updated.getOrNull(index)?.let { updated[index] = it.copy(tldr = tldrText) }
+                copy(packages = updated)
+            }
+        }
     }
 
     fun showConfirm(message: String, onConfirm: () -> Unit) {

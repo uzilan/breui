@@ -138,4 +138,17 @@ class AppViewModelTest {
         vm.upgradeAll()
         assertTrue(vm.state.value.overlay is Overlay.Confirm)
     }
+
+    @Test
+    fun `setDetailTab TLDR triggers loadTldr`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.loadInstalled()
+        advanceUntilIdle()
+        vm.setDetailTab(DetailTab.TLDR)
+        advanceUntilIdle()
+        // NoOpTldrService returns null, so tldr falls back to desc
+        val pkg = vm.state.value.packages.getOrNull(0)
+        // tldr field should be set (to desc — not null)
+        assertTrue(pkg?.tldr != null)
+    }
 }
