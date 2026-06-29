@@ -1,6 +1,7 @@
 package breui.ui
 
 import breui.model.AppState
+import breui.model.DetailTab
 import breui.viewmodel.AppViewModel
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.BorderLayout
@@ -18,6 +19,7 @@ class App(
     private val scope: CoroutineScope
 ) {
     private val listPanel = ListPanel()
+    private val detailPanel = DetailPanel()
     private val statusBar = StatusBar()
     private val window = BasicWindow("breui")
 
@@ -30,7 +32,7 @@ class App(
             BorderLayout.Location.LEFT
         )
         root.addComponent(
-            Label("Select a package").withBorder(Borders.singleLine("Details")),
+            detailPanel.withBorder(Borders.singleLine("Details")),
             BorderLayout.Location.CENTER
         )
         root.addComponent(statusBar, BorderLayout.Location.BOTTOM)
@@ -61,14 +63,24 @@ class App(
 
     private fun applyState(state: AppState) {
         listPanel.applyState(state) { index -> viewModel.selectPackage(index) }
+        detailPanel.applyState(state)
         statusBar.setText(state.statusMessage)
     }
 
     private fun handleKey(key: KeyStroke) {
+        val state = viewModel.state.value
         when {
             key.keyType == KeyType.Character && key.character == 'q' -> window.close()
             key.keyType == KeyType.Tab -> viewModel.toggleMode()
             key.keyType == KeyType.Character && key.character == 'r' -> viewModel.loadInstalled()
+            key.keyType == KeyType.ArrowLeft || (key.keyType == KeyType.Character && key.character == '[') -> {
+                val prev = DetailTab.values()[(state.detailTab.ordinal - 1 + 3) % 3]
+                viewModel.setDetailTab(prev)
+            }
+            key.keyType == KeyType.ArrowRight || (key.keyType == KeyType.Character && key.character == ']') -> {
+                val next = DetailTab.values()[(state.detailTab.ordinal + 1) % 3]
+                viewModel.setDetailTab(next)
+            }
             else -> {}
         }
     }
