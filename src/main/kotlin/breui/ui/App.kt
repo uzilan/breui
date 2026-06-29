@@ -6,8 +6,13 @@ import breui.model.Mode
 import breui.model.Overlay
 import breui.ui.overlays.ConfirmOverlay
 import breui.viewmodel.AppViewModel
-import com.googlecode.lanterna.gui2.*
+import com.googlecode.lanterna.gui2.BasicWindow
 import com.googlecode.lanterna.gui2.BorderLayout
+import com.googlecode.lanterna.gui2.Borders
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.Panel
+import com.googlecode.lanterna.gui2.Window
+import com.googlecode.lanterna.gui2.WindowListenerAdapter
 import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
@@ -128,12 +133,16 @@ class App(
             listPanel.searchFocused && key.keyType == KeyType.Character -> {
                 listPanel.searchBuffer += key.character
             }
-            !listPanel.searchFocused && (key.keyType == KeyType.ArrowLeft || (key.keyType == KeyType.Character && key.character == '[')) -> {
-                val prev = DetailTab.values()[(state.detailTab.ordinal - 1 + 3) % 3]
+            !listPanel.searchFocused &&
+                (key.keyType == KeyType.ArrowLeft ||
+                    (key.keyType == KeyType.Character && key.character == '[')) -> {
+                val prev = DetailTab.entries[(state.detailTab.ordinal - 1 + 3) % 3]
                 viewModel.setDetailTab(prev)
             }
-            !listPanel.searchFocused && (key.keyType == KeyType.ArrowRight || (key.keyType == KeyType.Character && key.character == ']')) -> {
-                val next = DetailTab.values()[(state.detailTab.ordinal + 1) % 3]
+            !listPanel.searchFocused &&
+                (key.keyType == KeyType.ArrowRight ||
+                    (key.keyType == KeyType.Character && key.character == ']')) -> {
+                val next = DetailTab.entries[(state.detailTab.ordinal + 1) % 3]
                 viewModel.setDetailTab(next)
             }
             else -> {}
