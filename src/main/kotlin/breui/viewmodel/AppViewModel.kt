@@ -37,6 +37,36 @@ class AppViewModel(
 
     fun selectPackage(index: Int) {
         update { copy(selected = index) }
+        if (_state.value.mode == Mode.SEARCH) {
+            loadPackageInfo(index)
+        }
+    }
+
+    fun search(query: String) {
+        scope.launch {
+            update { copy(loading = true, searchQuery = query) }
+            brewService.search(query)
+                .onSuccess { packages ->
+                    update { copy(packages = packages, loading = false, selected = 0) }
+                }
+                .onFailure { e ->
+                    update { copy(loading = false) }
+                    setStatusMessage("Search error: ${e.message}")
+                }
+        }
+    }
+
+    fun loadPackageInfo(index: Int) {
+        val pkg = _state.value.packages.getOrNull(index) ?: return
+        scope.launch {
+            brewService.info(pkg.name, pkg.type)
+                .onSuccess { fullPkg ->
+                    update {
+                        copy(packages = packages.toMutableList().also { it[index] = fullPkg })
+                    }
+                }
+                .onFailure { e -> setStatusMessage("Info error: ${e.message}") }
+        }
     }
 
     fun setStatusMessage(message: String) {

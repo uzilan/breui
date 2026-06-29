@@ -2,6 +2,7 @@ package breui.ui
 
 import breui.model.AppState
 import breui.model.DetailTab
+import breui.model.Mode
 import breui.viewmodel.AppViewModel
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.gui2.BorderLayout
@@ -70,14 +71,37 @@ class App(
     private fun handleKey(key: KeyStroke) {
         val state = viewModel.state.value
         when {
-            key.keyType == KeyType.Character && key.character == 'q' -> window.close()
-            key.keyType == KeyType.Tab -> viewModel.toggleMode()
-            key.keyType == KeyType.Character && key.character == 'r' -> viewModel.loadInstalled()
-            key.keyType == KeyType.ArrowLeft || (key.keyType == KeyType.Character && key.character == '[') -> {
+            key.keyType == KeyType.Character && key.character == 'q' && !listPanel.searchFocused ->
+                window.close()
+            key.keyType == KeyType.Tab && !listPanel.searchFocused ->
+                viewModel.toggleMode()
+            key.keyType == KeyType.Character && key.character == 'r' && !listPanel.searchFocused ->
+                viewModel.loadInstalled()
+            key.keyType == KeyType.Character && key.character == '/' && state.mode == Mode.SEARCH -> {
+                listPanel.searchFocused = true
+                listPanel.searchBuffer = ""
+            }
+            listPanel.searchFocused && key.keyType == KeyType.Enter -> {
+                listPanel.searchFocused = false
+                viewModel.search(listPanel.searchBuffer)
+            }
+            listPanel.searchFocused && key.keyType == KeyType.Escape -> {
+                listPanel.searchFocused = false
+                listPanel.searchBuffer = ""
+            }
+            listPanel.searchFocused && key.keyType == KeyType.Backspace -> {
+                if (listPanel.searchBuffer.isNotEmpty()) {
+                    listPanel.searchBuffer = listPanel.searchBuffer.dropLast(1)
+                }
+            }
+            listPanel.searchFocused && key.keyType == KeyType.Character -> {
+                listPanel.searchBuffer += key.character
+            }
+            key.keyType == KeyType.ArrowLeft && !listPanel.searchFocused -> {
                 val prev = DetailTab.values()[(state.detailTab.ordinal - 1 + 3) % 3]
                 viewModel.setDetailTab(prev)
             }
-            key.keyType == KeyType.ArrowRight || (key.keyType == KeyType.Character && key.character == ']') -> {
+            key.keyType == KeyType.ArrowRight && !listPanel.searchFocused -> {
                 val next = DetailTab.values()[(state.detailTab.ordinal + 1) % 3]
                 viewModel.setDetailTab(next)
             }

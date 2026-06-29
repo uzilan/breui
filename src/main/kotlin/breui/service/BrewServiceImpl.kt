@@ -21,11 +21,30 @@ class BrewServiceImpl : BrewService {
         (formulae + casks).sortedBy { it.name }
     }
 
-    override suspend fun search(query: String): Result<List<Package>> =
-        Result.failure(UnsupportedOperationException("Implemented in Task 7"))
+    override suspend fun search(query: String): Result<List<Package>> = runCatching {
+        val output = runCommand(listOf("brew", "search", "--json=v2", query))
+        val response = json.decodeFromString<BrewSearchResponse>(output)
+        val formulae = response.formulae.map { name ->
+            Package(name, "", PackageType.FORMULA, false, false, false, "", "", null, emptyList())
+        }
+        val casks = response.casks.map { name ->
+            Package(name, "", PackageType.CASK, false, false, false, "", "", null, emptyList())
+        }
+        (formulae + casks).sortedBy { it.name }
+    }
 
-    override suspend fun info(name: String, type: PackageType): Result<Package> =
-        Result.failure(UnsupportedOperationException("Implemented in Task 7"))
+    override suspend fun info(name: String, type: PackageType): Result<Package> = runCatching {
+        val args = if (type == PackageType.CASK) {
+            listOf("brew", "info", "--json=v2", "--cask", name)
+        } else {
+            listOf("brew", "info", "--json=v2", name)
+        }
+        val output = runCommand(args)
+        val response = json.decodeFromString<BrewInfoResponse>(output)
+        response.formulae.firstOrNull()?.toPackage()
+            ?: response.casks.firstOrNull()?.toPackage()
+            ?: error("No info found for $name")
+    }
 
     override fun install(name: String, type: PackageType): Flow<String> = flow {
         emit("Not yet implemented")

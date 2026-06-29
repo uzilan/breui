@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppViewModelTest {
@@ -75,5 +76,28 @@ class AppViewModelTest {
         val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
         vm.setDetailTab(DetailTab.DEPS)
         assertEquals(DetailTab.DEPS, vm.state.value.detailTab)
+    }
+
+    @Test
+    fun `search sets packages and clears loading`() = runTest {
+        val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.toggleMode() // → SEARCH
+        vm.search("git")
+        advanceUntilIdle()
+        assertEquals(FakeBrewService.FIXTURE_PACKAGES, vm.state.value.packages)
+        assertFalse(vm.state.value.loading)
+        assertEquals("git", vm.state.value.searchQuery)
+    }
+
+    @Test
+    fun `search on failure sets status message`() = runTest {
+        val fake = FakeBrewService().apply {
+            searchResult = Result.failure(RuntimeException("network error"))
+        }
+        val vm = AppViewModel(fake, NoOpTldrService(), this)
+        vm.toggleMode()
+        vm.search("git")
+        runCurrent()
+        assertTrue(vm.state.value.statusMessage.contains("network error"))
     }
 }

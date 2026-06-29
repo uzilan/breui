@@ -10,18 +10,24 @@ import com.googlecode.lanterna.gui2.*
 class ListPanel : Panel(LinearLayout(Direction.VERTICAL)) {
     private val header = Label("")
     private val listBox = ActionListBox(TerminalSize(40, 0))
-    private val searchLabel = Label("")
+    private val searchLine = Label("  [/] search | [Tab] toggle")
+    var searchBuffer = ""
+    var searchFocused = false
 
     init {
         addComponent(header)
         addComponent(listBox)
-        addComponent(searchLabel)
+        addComponent(searchLine)
         preferredSize = TerminalSize(42, 0)
     }
 
     fun applyState(state: AppState, onSelect: (Int) -> Unit) {
         header.text = "  [mode: ${state.mode}]${if (state.loading) " loading..." else ""}"
-        searchLabel.text = if (state.mode == Mode.SEARCH) "  Query: ${state.searchQuery}" else ""
+        if (state.mode == Mode.SEARCH) {
+            searchLine.text = "  Query: $searchBuffer${if (searchFocused) "_" else ""}"
+        } else {
+            searchLine.text = "  [/] search | [Tab] toggle"
+        }
 
         listBox.clearItems()
         state.packages.forEachIndexed { index, pkg ->
