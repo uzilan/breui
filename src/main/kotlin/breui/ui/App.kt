@@ -49,8 +49,8 @@ class App(
 
         scope.launch {
             viewModel.state.collect { state ->
-                applyState(state)
                 synchronized(gui) {
+                    applyState(state)
                     try { gui.updateScreen() } catch (_: Exception) {}
                 }
             }
