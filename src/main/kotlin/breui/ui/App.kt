@@ -87,7 +87,9 @@ class App(
                 currentOverlayWindow = null
             }
             is Overlay.Confirm -> {
-                if (currentOverlayWindow != null) return
+                if (currentOverlayWindow is ConfirmOverlay) return
+                currentOverlayWindow?.close()
+                currentOverlayWindow = null
                 val win = ConfirmOverlay(
                     message = overlay.message,
                     onConfirm = { overlay.onConfirm(); viewModel.closeOverlay() },
@@ -102,13 +104,14 @@ class App(
                         currentOverlayWindow = it
                         gui.addWindow(it)
                     }
-                val lastLine = overlay.lines.lastOrNull()
-                if (lastLine != null && win.lineCount < overlay.lines.size) {
-                    win.appendLine(lastLine)
+                for (i in win.lineCount until overlay.lines.size) {
+                    win.appendLine(overlay.lines[i])
                 }
             }
             is Overlay.TapManager -> {
-                if (currentOverlayWindow != null) return
+                if (currentOverlayWindow is TapManagerOverlay) return
+                currentOverlayWindow?.close()
+                currentOverlayWindow = null
                 val win = TapManagerOverlay(
                     taps = state.taps,
                     onAdd = { tap -> viewModel.addTap(tap) },

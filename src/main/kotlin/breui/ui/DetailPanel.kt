@@ -23,7 +23,7 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
     }
 
     private fun buildTabBar(active: DetailTab): String {
-        return DetailTab.values().joinToString("  ") { tab ->
+        return DetailTab.entries.joinToString("  ") { tab ->
             if (tab == active) "[${tab.name}]" else " ${tab.name} "
         }
     }

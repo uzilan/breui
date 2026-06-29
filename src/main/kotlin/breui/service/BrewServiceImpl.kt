@@ -101,7 +101,8 @@ class BrewServiceImpl : BrewService {
         process.inputStream.bufferedReader().use { reader ->
             reader.lineSequence().forEach { line -> emit(line) }
         }
-        process.waitFor()
+        val exitCode = process.waitFor()
+        if (exitCode != 0) emit("Error: command exited with code $exitCode")
     }.flowOn(Dispatchers.IO)
 
     private suspend fun runCommand(args: List<String>): String = withContext(Dispatchers.IO) {
