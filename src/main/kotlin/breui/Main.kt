@@ -4,6 +4,7 @@ import breui.service.BrewServiceImpl
 import breui.service.TldrServiceImpl
 import breui.ui.App
 import breui.viewmodel.AppViewModel
+import com.googlecode.lanterna.bundle.LanternaThemes
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
@@ -17,6 +18,7 @@ fun main() = runBlocking {
     val screen = TerminalScreen(terminal)
     screen.startScreen()
     val gui = MultiWindowTextGUI(screen)
+    gui.setTheme(LanternaThemes.getRegisteredTheme("businessmachine"))
 
     val scope = CoroutineScope(Dispatchers.Default)
     val viewModel = AppViewModel(BrewServiceImpl(), TldrServiceImpl(), scope)

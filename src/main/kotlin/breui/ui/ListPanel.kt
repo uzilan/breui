@@ -4,6 +4,7 @@ import breui.model.AppState
 import breui.model.Mode
 import breui.model.Package
 import breui.model.PackageType
+import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.TerminalSize
 import com.googlecode.lanterna.gui2.*
 import com.googlecode.lanterna.input.KeyStroke
@@ -19,6 +20,7 @@ class ListPanel : Panel(BorderLayout()) {
     @Volatile var onSearchKey: (() -> Unit)? = null
     @Volatile var onSearchSubmit: ((String) -> Unit)? = null
     private var lastPackages: List<Package> = emptyList()
+    private var dependencyNames: Set<String> = emptySet()
 
     private val listBox = object : ActionListBox() {
         override fun handleKeyStroke(key: KeyStroke): Interactable.Result {
@@ -35,6 +37,34 @@ class ListPanel : Panel(BorderLayout()) {
     }
 
     init {
+        listBox.setListItemRenderer(object : AbstractListBox.ListItemRenderer<Runnable, ActionListBox>() {
+            override fun drawItem(
+                graphics: TextGUIGraphics,
+                listBox: ActionListBox,
+                index: Int,
+                item: Runnable,
+                selected: Boolean,
+                focused: Boolean
+            ) {
+                val pkg = lastPackages.getOrNull(index)
+                val label = getLabel(listBox, index, item)
+                val width = graphics.size.columns
+                val text = label.take(width).padEnd(width)
+                when {
+                    selected && focused -> {
+                        graphics.setForegroundColor(TextColor.ANSI.BLACK)
+                        graphics.setBackgroundColor(TextColor.ANSI.GREEN)
+                        graphics.putString(0, 0, text)
+                    }
+                    pkg != null && pkg.name in dependencyNames -> {
+                        graphics.setForegroundColor(TextColor.ANSI.BLACK)
+                        graphics.setBackgroundColor(TextColor.ANSI.CYAN)
+                        graphics.putString(0, 0, text)
+                    }
+                    else -> super.drawItem(graphics, listBox, index, item, selected, focused)
+                }
+            }
+        })
         addComponent(header, BorderLayout.Location.TOP)
         addComponent(listBox, BorderLayout.Location.CENTER)
         addComponent(searchLine, BorderLayout.Location.BOTTOM)
@@ -89,6 +119,8 @@ class ListPanel : Panel(BorderLayout()) {
         } else if (!searchFocused) {
             searchLine.text = "  Query: $searchBuffer"
         }
+
+        dependencyNames = state.packages.getOrNull(state.selected)?.dependencies?.toSet() ?: emptySet()
 
         if (state.packages != lastPackages) {
             lastPackages = state.packages

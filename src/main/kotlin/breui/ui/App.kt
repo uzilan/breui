@@ -8,7 +8,12 @@ import breui.ui.overlays.ConfirmOverlay
 import breui.ui.overlays.ProgressOverlay
 import breui.ui.overlays.TapManagerOverlay
 import breui.viewmodel.AppViewModel
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.bundle.LanternaThemes
+import com.googlecode.lanterna.gui2.AbstractListBox
+import com.googlecode.lanterna.gui2.ActionListBox
 import com.googlecode.lanterna.gui2.BasicWindow
+import com.googlecode.lanterna.gui2.TextGUIGraphics
 import com.googlecode.lanterna.gui2.BorderLayout
 import com.googlecode.lanterna.gui2.Borders
 import com.googlecode.lanterna.gui2.Direction
@@ -35,6 +40,7 @@ class App(
     private val detailPanel = DetailPanel()
     private val statusBar = StatusBar()
     private val window = BasicWindow("breui")
+    private var currentThemeName = "businessmachine"
 
     fun run() {
         window.setHints(setOf(Window.Hint.FULL_SCREEN, Window.Hint.NO_DECORATIONS))
@@ -51,7 +57,7 @@ class App(
         val bottomPanel = Panel(LinearLayout(Direction.VERTICAL))
         bottomPanel.addComponent(statusBar)
         bottomPanel.addComponent(
-            Label("  ['] search  [r] refresh  [i] install  [u] upgrade  [U] all  [x] uninstall  [p] pin  [t] taps  [←][→] tabs  [q] quit")
+            Label("  ['] search  [r] refresh  [i] install  [u] upgrade  [U] all  [x] uninstall  [t] theme  [←][→] tabs  [q] quit")
         )
         root.addComponent(bottomPanel, BorderLayout.Location.BOTTOM)
         window.component = root
@@ -164,10 +170,8 @@ class App(
                 viewModel.upgradePackage(viewModel.state.value.selected)
             key.keyType == KeyType.Character && key.character == 'U' && !listPanel.searchFocused ->
                 viewModel.upgradeAll()
-            key.keyType == KeyType.Character && key.character == 'p' && !listPanel.searchFocused ->
-                viewModel.togglePin(viewModel.state.value.selected)
             key.keyType == KeyType.Character && key.character == 't' && !listPanel.searchFocused ->
-                viewModel.openTapManager()
+                openThemeChooser()
             key.keyType == KeyType.ArrowLeft && !listPanel.searchFocused -> {
                 val prev = DetailTab.entries[(state.detailTab.ordinal - 1 + 3) % 3]
                 viewModel.setDetailTab(prev)
@@ -178,5 +182,43 @@ class App(
             }
             else -> {}
         }
+    }
+
+    private fun openThemeChooser() {
+        val themes = LanternaThemes.getRegisteredThemes().sorted()
+        val win = BasicWindow("Choose Theme")
+        win.setHints(setOf(Window.Hint.CENTERED))
+        val listBox = ActionListBox()
+        listBox.setListItemRenderer(object : AbstractListBox.ListItemRenderer<Runnable, ActionListBox>() {
+            override fun drawItem(graphics: TextGUIGraphics, lb: ActionListBox, index: Int, item: Runnable, selected: Boolean, focused: Boolean) {
+                val name = getLabel(lb, index, item)
+                val prefix = if (name == currentThemeName) "> " else "  "
+                val label = "$prefix$name"
+                val width = graphics.size.columns
+                val text = label.take(width).padEnd(width)
+                if (selected && focused) {
+                    graphics.setForegroundColor(TextColor.ANSI.BLACK)
+                    graphics.setBackgroundColor(TextColor.ANSI.GREEN)
+                    graphics.putString(0, 0, text)
+                } else {
+                    super.drawItem(graphics, lb, index, item, selected, focused)
+                    graphics.putString(0, 0, text)
+                }
+            }
+        })
+        themes.forEach { name ->
+            listBox.addItem(name) {
+                currentThemeName = name
+                gui.setTheme(LanternaThemes.getRegisteredTheme(name))
+                win.close()
+            }
+        }
+        win.addWindowListener(object : WindowListenerAdapter() {
+            override fun onUnhandledInput(basePane: Window, key: KeyStroke, hasBeenHandled: AtomicBoolean) {
+                if (key.keyType == KeyType.Escape) { win.close(); hasBeenHandled.set(true) }
+            }
+        })
+        win.component = listBox
+        gui.addWindow(win)
     }
 }
