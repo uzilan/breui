@@ -23,13 +23,13 @@ class BrewServiceImpl : BrewService {
     }
 
     override suspend fun search(query: String): Result<List<Package>> = runCatching {
-        val output = runCommand(listOf("brew", "search", "--json=v2", query))
-        val response = json.decodeFromString<BrewSearchResponse>(output)
-        val formulae = response.formulae.map { name ->
-            Package(name, "", PackageType.FORMULA, false, false, false, "", "", null, emptyList())
+        val fOut = try { runCommand(listOf("brew", "search", "--formula", query)) } catch (_: Exception) { "" }
+        val cOut = try { runCommand(listOf("brew", "search", "--cask", query)) } catch (_: Exception) { "" }
+        val formulae = fOut.lines().filter { it.isNotBlank() }.map { name ->
+            Package(name.trim(), "", PackageType.FORMULA, false, false, false, "", "", null, emptyList())
         }
-        val casks = response.casks.map { name ->
-            Package(name, "", PackageType.CASK, false, false, false, "", "", null, emptyList())
+        val casks = cOut.lines().filter { it.isNotBlank() }.map { name ->
+            Package(name.trim(), "", PackageType.CASK, false, false, false, "", "", null, emptyList())
         }
         (formulae + casks).sortedBy { it.name }
     }
@@ -81,6 +81,11 @@ class BrewServiceImpl : BrewService {
 
     override suspend fun unpin(name: String): Result<Unit> =
         runCatching { runCommand(listOf("brew", "unpin", name)) }.map { }
+
+    override suspend fun update(): Result<Unit> = runCatching {
+        runCommand(listOf("brew", "update"))
+        Unit
+    }
 
     override suspend fun listTaps(): Result<List<String>> = runCatching {
         val output = runCommand(listOf("brew", "tap"))

@@ -25,6 +25,8 @@ class AppViewModel(
     private val _state = MutableStateFlow(AppState())
     val state: StateFlow<AppState> = _state.asStateFlow()
 
+    @Volatile private var installedNames: Set<String> = emptySet()
+
     private fun update(block: AppState.() -> AppState) = _state.update(block)
 
     fun loadInstalled() {
@@ -32,12 +34,19 @@ class AppViewModel(
             update { copy(loading = true) }
             brewService.listInstalled()
                 .onSuccess { packages ->
+                    installedNames = packages.map { it.name }.toSet()
                     update { copy(packages = packages, loading = false, selected = 0) }
                 }
                 .onFailure { e ->
                     update { copy(loading = false) }
                     setStatusMessage("Error: ${e.message}")
                 }
+        }
+    }
+
+    fun backgroundUpdate() {
+        scope.launch {
+            brewService.update().onSuccess { loadInstalled() }
         }
     }
 
@@ -53,7 +62,8 @@ class AppViewModel(
             update { copy(loading = true, searchQuery = query) }
             brewService.search(query)
                 .onSuccess { packages ->
-                    update { copy(packages = packages, loading = false, selected = 0) }
+                    val marked = packages.map { it.copy(installed = it.name in installedNames) }
+                    update { copy(packages = marked, loading = false, selected = 0) }
                 }
                 .onFailure { e ->
                     update { copy(loading = false) }

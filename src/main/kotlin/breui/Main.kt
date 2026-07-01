@@ -22,6 +22,7 @@ fun main() = runBlocking {
     val viewModel = AppViewModel(BrewServiceImpl(), TldrServiceImpl(), scope)
 
     viewModel.loadInstalled()
+    viewModel.backgroundUpdate()
 
     App(gui, screen, viewModel, scope).run()
 

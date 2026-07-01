@@ -14,6 +14,7 @@ interface BrewService {
     fun uninstall(name: String, type: PackageType): Flow<String>
     suspend fun pin(name: String): Result<Unit>
     suspend fun unpin(name: String): Result<Unit>
+    suspend fun update(): Result<Unit>
     suspend fun listTaps(): Result<List<String>>
     fun addTap(tap: String): Flow<String>
     suspend fun removeTap(tap: String): Result<Unit>
