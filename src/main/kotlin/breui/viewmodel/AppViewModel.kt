@@ -35,7 +35,10 @@ class AppViewModel(
             brewService.listInstalled()
                 .onSuccess { packages ->
                     installedNames = packages.map { it.name }.toSet()
-                    update { copy(packages = packages, loading = false, selected = 0) }
+                    val cachedTldr = _state.value.packages.associate { it.name to it.tldr }
+                    val merged = packages.map { it.copy(tldr = cachedTldr[it.name]) }
+                    update { copy(packages = merged, loading = false, selected = 0) }
+                    if (_state.value.detailTab == DetailTab.TLDR) loadTldr(_state.value.selected)
                 }
                 .onFailure { e ->
                     update { copy(loading = false) }
@@ -52,9 +55,8 @@ class AppViewModel(
 
     fun selectPackage(index: Int) {
         update { copy(selected = index) }
-        if (_state.value.mode == Mode.SEARCH) {
-            loadPackageInfo(index)
-        }
+        if (_state.value.mode == Mode.SEARCH) loadPackageInfo(index)
+        if (_state.value.detailTab == DetailTab.TLDR) loadTldr(index)
     }
 
     fun search(query: String) {
