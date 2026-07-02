@@ -128,6 +128,10 @@ class AppViewModel(
         update { copy(overlay = null) }
     }
 
+    fun openHelp() {
+        update { copy(overlay = Overlay.Help) }
+    }
+
     fun openProgress(title: String) {
         update { copy(overlay = Overlay.Progress(title, emptyList())) }
     }

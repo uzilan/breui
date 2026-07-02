@@ -51,7 +51,7 @@ class ListPanel : Panel(BorderLayout()) {
                 val width = graphics.size.columns
                 val text = label.take(width).padEnd(width)
                 when {
-                    selected && focused -> {
+                    selected -> {
                         graphics.setForegroundColor(TextColor.ANSI.BLACK)
                         graphics.setBackgroundColor(TextColor.ANSI.GREEN)
                         graphics.putString(0, 0, text)
@@ -132,6 +132,7 @@ class ListPanel : Panel(BorderLayout()) {
 
         if (state.packages.isNotEmpty()) {
             listBox.selectedIndex = state.selected.coerceIn(0, state.packages.size - 1)
+            listBox.takeFocus()
         }
     }
 

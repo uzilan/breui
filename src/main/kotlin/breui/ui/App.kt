@@ -5,6 +5,7 @@ import breui.model.DetailTab
 import breui.model.Mode
 import breui.model.Overlay
 import breui.ui.overlays.ConfirmOverlay
+import breui.ui.overlays.HelpOverlay
 import breui.ui.overlays.ProgressOverlay
 import breui.ui.overlays.TapManagerOverlay
 import breui.viewmodel.AppViewModel
@@ -57,7 +58,7 @@ class App(
         val bottomPanel = Panel(LinearLayout(Direction.VERTICAL))
         bottomPanel.addComponent(statusBar)
         bottomPanel.addComponent(
-            Label("  ['] search  [r] refresh  [i] install  [u] upgrade  [U] all  [x] uninstall  [t] theme  [←][→] tabs  [q] quit")
+            Label("  ['] search  [r] refresh  [i] install  [u] upgrade  [U] all  [x] uninstall  [t] theme  [h] help  [←][→] tabs  [q] quit")
         )
         root.addComponent(bottomPanel, BorderLayout.Location.BOTTOM)
         window.component = root
@@ -148,6 +149,14 @@ class App(
                 currentOverlayWindow = win
                 gui.addWindow(win)
             }
+            is Overlay.Help -> {
+                if (currentOverlayWindow is HelpOverlay) return
+                currentOverlayWindow?.close()
+                currentOverlayWindow = null
+                val win = HelpOverlay(onDismiss = { viewModel.closeOverlay() })
+                currentOverlayWindow = win
+                gui.addWindow(win)
+            }
         }
     }
 
@@ -175,6 +184,8 @@ class App(
                 viewModel.upgradeAll()
             key.keyType == KeyType.Character && key.character == 't' && !listPanel.searchFocused ->
                 openThemeChooser()
+            key.keyType == KeyType.Character && key.character == 'h' && !listPanel.searchFocused ->
+                viewModel.openHelp()
             key.keyType == KeyType.ArrowLeft && !listPanel.searchFocused -> {
                 val prev = DetailTab.entries[(state.detailTab.ordinal - 1 + 3) % 3]
                 viewModel.setDetailTab(prev)
