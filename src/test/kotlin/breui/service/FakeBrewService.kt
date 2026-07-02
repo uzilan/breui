@@ -28,15 +28,46 @@ class FakeBrewService : BrewService {
     override suspend fun listTaps(): Result<List<String>> = Result.success(listOf("homebrew/core", "homebrew/cask"))
     override fun addTap(tap: String): Flow<String> = flowOf("Tapping $tap...")
     override suspend fun removeTap(tap: String): Result<Unit> = Result.success(Unit)
+    override suspend fun update(): Result<Unit> = Result.success(Unit)
 
     companion object {
         val FIXTURE_PACKAGES = listOf(
-            Package("curl", "8.5.0", PackageType.FORMULA, true, false, false,
-                "Get a file from an HTTP, HTTPS or FTP server", "https://curl.se", "curl", listOf("openssl@3")),
-            Package("git", "2.43.0", PackageType.FORMULA, true, false, true,
-                "Distributed revision control system", "https://git-scm.com", "GPL-2.0-only", listOf("gettext", "pcre2")),
-            Package("iterm2", "3.5.0", PackageType.CASK, true, false, false,
-                "Terminal emulator as alternative to Apple Terminal", "https://iterm2.com", null, emptyList())
+            Package(
+                name = "curl",
+                version = "8.5.0",
+                type = PackageType.FORMULA,
+                installed = true,
+                pinned = false,
+                outdated = false,
+                desc = "Get a file from an HTTP, HTTPS or FTP server",
+                homepage = "https://curl.se",
+                license = "curl",
+                dependencies = listOf("openssl@3")
+            ),
+            Package(
+                name = "git",
+                version = "2.43.0",
+                type = PackageType.FORMULA,
+                installed = true,
+                pinned = false,
+                outdated = true,
+                desc = "Distributed revision control system",
+                homepage = "https://git-scm.com",
+                license = "GPL-2.0-only",
+                dependencies = listOf("gettext", "pcre2")
+            ),
+            Package(
+                name = "iterm2",
+                version = "3.5.0",
+                type = PackageType.CASK,
+                installed = true,
+                pinned = false,
+                outdated = false,
+                desc = "Terminal emulator as alternative to Apple Terminal",
+                homepage = "https://iterm2.com",
+                license = null,
+                dependencies = emptyList()
+            )
         )
     }
 }

@@ -15,8 +15,8 @@ data class FormulaDto(
     val installed: List<InstalledVersionDto> = emptyList(),
     val pinned: Boolean = false,
     val outdated: Boolean = false,
-    val desc: String = "",
-    val homepage: String = "",
+    val desc: String? = null,
+    val homepage: String? = null,
     val license: String? = null,
     val dependencies: List<String> = emptyList()
 )
@@ -33,8 +33,8 @@ data class CaskDto(
     val version: String = "",
     val installed: String? = null,
     val outdated: Boolean = false,
-    val desc: String = "",
-    val homepage: String = ""
+    val desc: String? = null,
+    val homepage: String? = null
 )
 
 @Serializable

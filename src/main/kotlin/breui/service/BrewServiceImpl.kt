@@ -12,7 +12,10 @@ import java.io.IOException
 
 class BrewServiceImpl : BrewService {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     override suspend fun listInstalled(): Result<List<Package>> = runCatching {
         val output = runCommand(listOf("brew", "info", "--json=v2", "--installed"))
@@ -26,10 +29,10 @@ class BrewServiceImpl : BrewService {
         val fOut = try { runCommand(listOf("brew", "search", "--formula", query)) } catch (_: Exception) { "" }
         val cOut = try { runCommand(listOf("brew", "search", "--cask", query)) } catch (_: Exception) { "" }
         val formulae = fOut.lines().filter { it.isNotBlank() }.map { name ->
-            Package(name.trim(), "", PackageType.FORMULA, false, false, false, "", "", null, emptyList())
+            Package(name.trim(), "", PackageType.FORMULA, false, false, false, null, null, null, emptyList())
         }
         val casks = cOut.lines().filter { it.isNotBlank() }.map { name ->
-            Package(name.trim(), "", PackageType.CASK, false, false, false, "", "", null, emptyList())
+            Package(name.trim(), "", PackageType.CASK, false, false, false, null, null, null, emptyList())
         }
         (formulae + casks).sortedBy { it.name }
     }

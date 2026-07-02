@@ -111,7 +111,7 @@ class AppViewModel(
         if (pkg.tldr != null) return
         scope.launch {
             val result = tldrService.get(pkg.name)
-            val tldrText = result ?: pkg.desc.ifBlank { "No description available" }
+            val tldrText = result ?: pkg.desc?.ifBlank { null } ?: "No description available"
             update {
                 val updated = packages.toMutableList()
                 updated.getOrNull(index)?.let { updated[index] = it.copy(tldr = tldrText) }

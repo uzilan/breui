@@ -107,8 +107,11 @@ class App(
     private fun renderOverlay(state: AppState) {
         when (val overlay = state.overlay) {
             null -> {
-                currentOverlayWindow?.close()
-                currentOverlayWindow = null
+                if (currentOverlayWindow != null) {
+                    currentOverlayWindow?.close()
+                    currentOverlayWindow = null
+                    screen.clear()
+                }
             }
             is Overlay.Confirm -> {
                 if (currentOverlayWindow is ConfirmOverlay) return

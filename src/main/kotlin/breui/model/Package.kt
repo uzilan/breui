@@ -9,8 +9,8 @@ data class Package(
     val installed: Boolean,
     val pinned: Boolean,
     val outdated: Boolean,
-    val desc: String,
-    val homepage: String,
+    val desc: String?,
+    val homepage: String?,
     val license: String?,
     val dependencies: List<String>,
     val tldr: String? = null

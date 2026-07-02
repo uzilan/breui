@@ -36,9 +36,9 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
             appendLine("Outdated: ${if (pkg.outdated) "yes *" else "no"}")
             appendLine("Pinned:   ${if (pkg.pinned) "yes" else "no"}")
             appendLine()
-            appendLine(pkg.desc)
+            appendLine(pkg.desc ?: "(no description)")
             appendLine()
-            appendLine("Homepage: ${pkg.homepage}")
+            if (pkg.homepage != null) appendLine("Homepage: ${pkg.homepage}")
             if (pkg.license != null) appendLine("License:  ${pkg.license}")
         }
         DetailTab.DEPS -> if (pkg.dependencies.isEmpty()) {
