@@ -23,7 +23,10 @@ class ProgressOverlay(title: String) : BasicWindow(title) {
     }
 
     fun appendLine(line: String) {
-        logBox.addItem(line) {}
+        val wrapped = line.chunked(70)
+        for (chunk in wrapped) {
+            logBox.addItem(chunk) {}
+        }
         logBox.selectedIndex = logBox.itemCount - 1
     }
 }
