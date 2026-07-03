@@ -19,7 +19,7 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
     fun applyState(state: AppState) {
         val pkg = state.packages.getOrNull(state.selected)
         tabBar.text = buildTabBar(state.detailTab)
-        content.text = if (pkg == null) "No package selected" else renderContent(pkg, state.detailTab)
+        content.text = if (pkg == null) "No package selected" else renderContent(pkg, state.detailTab, state.packages)
     }
 
     private fun buildTabBar(active: DetailTab): String {
@@ -28,7 +28,7 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
         }
     }
 
-    private fun renderContent(pkg: Package, tab: DetailTab): String = when (tab) {
+    private fun renderContent(pkg: Package, tab: DetailTab, allPackages: List<Package>): String = when (tab) {
         DetailTab.INFO -> buildString {
             appendLine("Name:     ${pkg.name}")
             appendLine("Version:  ${pkg.version}")
@@ -41,10 +41,26 @@ class DetailPanel : Panel(LinearLayout(Direction.VERTICAL)) {
             if (pkg.homepage != null) appendLine("Homepage: ${pkg.homepage}")
             if (pkg.license != null) appendLine("License:  ${pkg.license}")
         }
-        DetailTab.DEPS -> if (pkg.dependencies.isEmpty()) {
-            if (pkg.type == PackageType.CASK) "No dependencies (cask)" else "No dependencies"
-        } else {
-            pkg.dependencies.joinToString("\n") { "  • $it" }
+        DetailTab.DEPS -> {
+            val dependencies = pkg.dependencies
+            val dependents = allPackages.filter { pkg.name in it.dependencies }.map { it.name }
+            buildString {
+                if (dependencies.isNotEmpty()) {
+                    appendLine("Dependencies:")
+                    dependencies.forEach { appendLine("  • $it") }
+                } else {
+                    if (pkg.type == PackageType.CASK) {
+                        appendLine("No dependencies (cask)")
+                    } else {
+                        appendLine("No dependencies")
+                    }
+                }
+                if (dependents.isNotEmpty()) {
+                    appendLine()
+                    appendLine("Required by:")
+                    dependents.forEach { appendLine("  • $it") }
+                }
+            }
         }
         DetailTab.TLDR -> pkg.tldr ?: "Loading..."
     }

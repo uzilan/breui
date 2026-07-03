@@ -200,6 +200,7 @@ class App(
 
     private fun openThemeChooser() {
         val themes = LanternaThemes.getRegisteredThemes().sorted()
+        val themeMap = themes.associateWith { LanternaThemes.getRegisteredTheme(it) }
         val win = BasicWindow("Choose Theme")
         win.setHints(setOf(Window.Hint.CENTERED))
         val listBox = ActionListBox()
@@ -215,7 +216,18 @@ class App(
                     graphics.setBackgroundColor(TextColor.ANSI.GREEN)
                     graphics.putString(0, 0, text)
                 } else {
-                    super.drawItem(graphics, lb, index, item, selected, focused)
+                    val theme = themeMap[name]
+                    if (theme != null) {
+                        val savedTheme = gui.theme
+                        try {
+                            gui.theme = theme
+                            super.drawItem(graphics, lb, index, item, false, focused)
+                        } finally {
+                            gui.theme = savedTheme
+                        }
+                    } else {
+                        super.drawItem(graphics, lb, index, item, selected, focused)
+                    }
                     graphics.putString(0, 0, text)
                 }
             }
@@ -223,7 +235,7 @@ class App(
         themes.forEach { name ->
             listBox.addItem(name) {
                 currentThemeName = name
-                gui.setTheme(LanternaThemes.getRegisteredTheme(name))
+                gui.setTheme(themeMap[name]!!)
                 win.close()
             }
         }

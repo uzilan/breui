@@ -35,8 +35,10 @@ Unidirectional data flow: `keypress → AppViewModel action → AppState (StateF
 - `service/BrewService` — interface; all methods are either `suspend fun … Result<T>` (one-shot) or `fun … Flow<String>` (streaming stdout). `BrewServiceImpl` shells out to `brew`. `TldrService` shells out to `tldr` and caches results in memory.
 - `viewmodel/AppViewModel` — owns a single `MutableStateFlow<AppState>`. All mutations go through `update { copy(…) }`. Long-running operations open a `Progress` overlay and stream lines into it via `appendProgressLine`.
 - `ui/App` — Lanterna `MultiWindowTextGUI` wiring. Collects `viewModel.state` in a coroutine; calls `applyState` + `gui.updateScreen()` under `synchronized(gui)`. Handles all key events via `WindowListenerAdapter`.
-- `ui/ListPanel`, `ui/DetailPanel`, `ui/StatusBar` — stateless renderers; receive `AppState` and callbacks.
-- `ui/overlays/` — `ConfirmOverlay`, `ProgressOverlay`, `TapManagerOverlay`; each is a `BasicWindow` shown/closed by `App.renderOverlay`.
+- `ui/ListPanel` — renders package list with highlighting: green (selected), cyan (dependencies of selected), yellow (packages depending on selected). Computes dependents by scanning all packages' dependency lists.
+- `ui/DetailPanel` — renders Info/Deps/TLDR tabs. Deps tab shows both dependencies and reverse dependencies ("Required by").
+- `ui/StatusBar` — shows status messages.
+- `ui/overlays/` — `ConfirmOverlay`, `ProgressOverlay`, `TapManagerOverlay`, `HelpOverlay`; each is a `BasicWindow` shown/closed by `App.renderOverlay`.
 
 **Key invariant:** `App.renderOverlay` is the only place overlays open or close. It diffs `state.overlay` type against `currentOverlayWindow` type to avoid redundant window churn.
 
@@ -50,3 +52,17 @@ Unidirectional data flow: `keypress → AppViewModel action → AppState (StateF
 ## PackageType
 
 Packages have a `PackageType` (formula vs cask). `BrewService` methods accept it to route to the right `brew` subcommand. Casks cannot be pinned — `AppViewModel.togglePin` guards this.
+
+## Dependency Highlighting
+
+- **ListPanel** computes two sets on each state update:
+  - `dependencyNames` — packages the selected package depends on (cyan highlight).
+  - `dependentNames` — packages that depend on the selected package (yellow highlight).
+- **DetailPanel DEPS tab** shows both directions:
+  - "Dependencies:" lists what the selected package needs.
+  - "Required by:" lists packages that depend on the selected package.
+- Only formulas have dependencies; casks always have empty dependencies and no "Required by".
+
+## Overlays
+
+New `Overlay.Help` shows a centered help screen with shortcuts, tab descriptions, and highlighting explanation. Triggered by `h` key. Dismisses on any key.

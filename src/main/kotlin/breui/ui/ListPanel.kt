@@ -21,6 +21,7 @@ class ListPanel : Panel(BorderLayout()) {
     @Volatile var onSearchSubmit: ((String) -> Unit)? = null
     private var lastPackages: List<Package> = emptyList()
     private var dependencyNames: Set<String> = emptySet()
+    private var dependentNames: Set<String> = emptySet()
 
     private val listBox = object : ActionListBox() {
         override fun handleKeyStroke(key: KeyStroke): Interactable.Result {
@@ -59,6 +60,11 @@ class ListPanel : Panel(BorderLayout()) {
                     pkg != null && pkg.name in dependencyNames -> {
                         graphics.setForegroundColor(TextColor.ANSI.BLACK)
                         graphics.setBackgroundColor(TextColor.ANSI.CYAN)
+                        graphics.putString(0, 0, text)
+                    }
+                    pkg != null && pkg.name in dependentNames -> {
+                        graphics.setForegroundColor(TextColor.ANSI.BLACK)
+                        graphics.setBackgroundColor(TextColor.ANSI.YELLOW)
                         graphics.putString(0, 0, text)
                     }
                     else -> super.drawItem(graphics, listBox, index, item, selected, focused)
@@ -120,7 +126,13 @@ class ListPanel : Panel(BorderLayout()) {
             searchLine.text = "  Query: $searchBuffer"
         }
 
-        dependencyNames = state.packages.getOrNull(state.selected)?.dependencies?.toSet() ?: emptySet()
+        val selectedPkg = state.packages.getOrNull(state.selected)
+        dependencyNames = selectedPkg?.dependencies?.toSet() ?: emptySet()
+        dependentNames = if (selectedPkg != null) {
+            state.packages.filter { selectedPkg.name in it.dependencies }.map { it.name }.toSet()
+        } else {
+            emptySet()
+        }
 
         if (state.packages != lastPackages) {
             lastPackages = state.packages

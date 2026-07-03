@@ -28,6 +28,7 @@ class HelpOverlay(val onDismiss: () -> Unit) : BasicWindow("Help") {
               [U] all          Upgrade all packages
               [x] uninstall    Uninstall selected package
               [t] theme        Change color theme
+              [h] help         Show this help screen
               [↑][↓] navigate  Scroll through packages
               [←][→] tabs      Switch detail view tabs
               [ESC] dismiss    Close dialogs
@@ -35,18 +36,22 @@ class HelpOverlay(val onDismiss: () -> Unit) : BasicWindow("Help") {
 
             DETAIL TABS:
               [INFO]  Package name, version, description
-              [DEPS]  Dependencies (only for formulas)
+              [DEPS]  Dependencies & dependents (formulas only)
               [TLDR]  Quick command examples (cached)
+
+            PACKAGE HIGHLIGHTING:
+              Green   Selected package
+              Cyan    Dependencies of selected package
+              Yellow  Packages that depend on selected
+
+            DEPS TAB:
+              Shows what the package depends on.
+              Also shows what other packages depend on it.
 
             THEMES:
               Choose from 6 Lanterna color themes.
               Current theme shown with ">" in theme menu.
               Themes apply instantly.
-
-            DEPENDENCY HIGHLIGHTING:
-              In the DEPS tab, dependencies shown in green.
-              Dependencies are only available for formulas.
-              Casks have no dependencies.
 
             Press any key to close this help screen.
         """.trimIndent()

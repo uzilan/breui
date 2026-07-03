@@ -11,8 +11,11 @@ A terminal UI for managing Homebrew packages on macOS — browse, search, instal
 - Upgrade individual packages or all at once
 - Live progress log for install/upgrade operations
 - `tldr` integration in the detail panel (falls back to `brew desc`)
-- Multiple Lanterna themes (`t` to switch)
+- Dependency visualization: see what a package depends on and what depends on it
+- Color highlighting: dependencies (cyan), dependents (yellow), selected package (green)
+- Multiple Lanterna themes (6 available; switch with `t`)
 - Background `brew update` on launch
+- Built-in help system (`h`)
 
 ## Requirements
 
@@ -39,6 +42,19 @@ java -jar build/libs/breui.jar
 | `U` | Upgrade all outdated packages |
 | `x` | Uninstall selected package |
 | `t` | Open theme chooser |
+| `h` | Show help & shortcuts |
 | `r` | Refresh installed list |
 | `Esc` | Close overlay |
 | `q` | Quit |
+
+## Display
+
+**Package List Colors:**
+- 🟢 **Green** — selected package
+- 🔵 **Cyan** — dependencies of selected package
+- 🟡 **Yellow** — packages that depend on the selected package
+
+**Detail Tabs:**
+- **Info** — name, version, description, homepage, license
+- **Deps** — dependencies and dependents (formulas only; casks have no dependencies)
+- **TLDR** — quick command examples cached from `tldr` or `brew desc`
