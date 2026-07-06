@@ -58,3 +58,7 @@ java -jar build/libs/breui.jar
 - **Info** — name, version, description, homepage, license
 - **Deps** — dependencies and dependents (formulas only; casks have no dependencies)
 - **TLDR** — quick command examples cached from `tldr` or `brew desc`
+
+## License
+
+[MIT](LICENSE)
