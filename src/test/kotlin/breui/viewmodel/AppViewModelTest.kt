@@ -82,6 +82,8 @@ class AppViewModelTest {
     @Test
     fun `search sets packages and clears loading`() = runTest {
         val vm = AppViewModel(FakeBrewService(), NoOpTldrService(), this)
+        vm.loadInstalled() // populates installedNames so search marks packages installed
+        advanceUntilIdle()
         vm.toggleMode() // → SEARCH
         vm.search("git")
         advanceUntilIdle()

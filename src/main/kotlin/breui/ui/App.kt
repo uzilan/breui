@@ -28,6 +28,8 @@ import com.googlecode.lanterna.input.KeyStroke
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -97,11 +99,31 @@ class App(
     }
 
     private var currentOverlayWindow: BasicWindow? = null
+    private var spinnerJob: Job? = null
+    private var spinnerIndex = 0
+    private val spinnerFrames = arrayOf("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
     private fun applyState(state: AppState) {
         listPanel.applyState(state) { index -> viewModel.selectPackage(index) }
         detailPanel.applyState(state)
-        statusBar.setText(state.statusMessage)
+        if (state.loading || state.overlay is Overlay.Progress) {
+            if (spinnerJob == null) {
+                spinnerJob = scope.launch {
+                    while (true) {
+                        synchronized(gui) {
+                            statusBar.setText("${spinnerFrames[spinnerIndex % spinnerFrames.size]} Loading...")
+                            spinnerIndex++
+                            try { gui.updateScreen() } catch (_: Exception) {}
+                        }
+                        delay(100)
+                    }
+                }
+            }
+        } else {
+            spinnerJob?.cancel()
+            spinnerJob = null
+            statusBar.setText(state.statusMessage)
+        }
         renderOverlay(state)
     }
 
