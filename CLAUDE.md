@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **breui** — terminal-based Homebrew management UI for macOS. Kotlin + Lanterna TUI, comparable to `btop` or `lazygit`. Shells out to `brew` CLI; never screen-scrapes (uses `--json=v2` flags).
 
+## Workflow
+
+Run `./gradlew installDist` after every code change.
+
 ## Commands
 
 ```bash

@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.4.0"
     kotlin("plugin.serialization") version "2.4.0"
     id("io.github.goooler.shadow") version "8.1.8"
+    application
 }
 
 group = "breui"
@@ -22,6 +23,10 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:2.4.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+}
+
+application {
+    mainClass.set("breui.MainKt")
 }
 
 tasks.shadowJar {
