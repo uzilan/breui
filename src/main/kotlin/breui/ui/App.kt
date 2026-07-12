@@ -189,7 +189,7 @@ class App(
             key.keyType == KeyType.Character && key.character == 'q' && !listPanel.searchFocused ->
                 window.close()
             key.keyType == KeyType.Character && key.character == 'r' && !listPanel.searchFocused ->
-                viewModel.loadInstalled()
+                viewModel.backgroundUpdate()
             key.keyType == KeyType.Character && key.character == '\'' && !listPanel.searchFocused ->
                 listPanel.onSearchKey?.invoke()
             key.keyType == KeyType.Escape && !listPanel.searchFocused -> {
